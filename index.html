@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stays Tracker — server buy/sell ledger</title>
+  <meta name="description" content="Track Discord server deals: auto-fetch name & members from the invite, log owner, buy and sell price of stays, filter and sort." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">S</span>
+      <div>
+        <div class="brand-name">Stays Tracker</div>
+        <div class="brand-sub">Discord server buy / sell ledger</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn ghost" id="refreshAll" title="Re-fetch names & member counts">↻ Refresh live</button>
+      <button class="btn ghost" id="exportBtn">⭳ Export</button>
+      <label class="btn ghost" for="importFile">⭱ Import</label>
+      <input type="file" id="importFile" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <!-- Summary -->
+  <section class="summary" id="summary">
+    <div class="sum-card"><span class="sum-num" id="sumCount">0</span><span class="sum-label">Servers</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumMembers">0</span><span class="sum-label">Members</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumBuy">0</span><span class="sum-label">Total buy (stays)</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumSell">0</span><span class="sum-label">Total sell (stays)</span></div>
+    <div class="sum-card profit"><span class="sum-num" id="sumProfit">0</span><span class="sum-label">Total profit</span></div>
+  </section>
+
+  <!-- Add form -->
+  <section class="add-panel">
+    <form id="addForm" class="add-form">
+      <input class="in in-link" id="fLink" placeholder="discord.gg/invite  (name & members auto-filled)" autocomplete="off" required />
+      <input class="in in-owner" id="fOwner" placeholder="Owner" autocomplete="off" />
+      <input class="in in-num" id="fBuy" type="number" step="any" min="0" placeholder="Buy (stays)" />
+      <input class="in in-num" id="fSell" type="number" step="any" min="0" placeholder="Sell (stays)" />
+      <button class="btn primary" type="submit">+ Add server</button>
+    </form>
+  </section>
+
+  <!-- Filters -->
+  <section class="filters">
+    <input class="in in-search" id="search" placeholder="🔍 Search name or owner…" autocomplete="off" />
+    <select class="in" id="ownerFilter"><option value="">All owners</option></select>
+    <select class="in" id="sortKey">
+      <option value="addedAt">Date added</option>
+      <option value="name">Name</option>
+      <option value="members">Members</option>
+      <option value="owner">Owner</option>
+      <option value="buy">Buy price</option>
+      <option value="sell">Sell price</option>
+      <option value="profit">Profit</option>
+      <option value="margin">Margin %</option>
+    </select>
+    <button class="btn ghost" id="sortDir" data-dir="desc" title="Toggle direction">↓ Desc</button>
+    <span class="filler"></span>
+    <button class="btn danger-ghost" id="clearAll" title="Delete everything">Clear all</button>
+  </section>
+
+  <!-- Table -->
+  <section class="table-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th class="c-idx">#</th>
+          <th class="c-srv sortable" data-sort="name">Server</th>
+          <th class="c-num sortable" data-sort="members">Members</th>
+          <th class="c-owner sortable" data-sort="owner">Owner</th>
+          <th class="c-num sortable" data-sort="buy">Buy (stays)</th>
+          <th class="c-num sortable" data-sort="sell">Sell (stays)</th>
+          <th class="c-num sortable" data-sort="profit">Profit</th>
+          <th class="c-num sortable" data-sort="margin">Margin</th>
+          <th class="c-act"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>
+      <p>No servers yet.</p>
+      <span>Paste a Discord invite above — the name and member count fill in automatically.</span>
+    </div>
+  </section>
+
+  <footer class="foot">
+    Data is stored locally in your browser (localStorage). Use <b>Export</b> to back it up or move it to another device.
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
