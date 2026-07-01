@@ -48,9 +48,6 @@ function iconUrl(id, icon) {
   const ext = icon.startsWith('a_') ? 'gif' : 'png';
   return `https://cdn.discordapp.com/icons/${id}/${icon}.${ext}?size=64`;
 }
-// Profit / margin work on the per-stay rate; null when buy or sell has no data.
-const profitOf = (r) => { const b = rateOf(r.buy), s = rateOf(r.sell); return (b != null && s != null) ? s - b : null; };
-const marginOf = (r) => { const b = rateOf(r.buy), s = rateOf(r.sell); return (b != null && s != null && b > 0) ? ((s - b) / b) * 100 : null; };
 
 /* ---- Discord invite lookup (runs in the visitor's browser; API allows CORS) ---- */
 async function fetchInvite(row) {
@@ -105,8 +102,6 @@ function visibleRows() {
       case 'members': return r.members == null ? null : num(r.members);
       case 'buy': return rateOf(r.buy);
       case 'sell': return rateOf(r.sell);
-      case 'profit': return profitOf(r);
-      case 'margin': return marginOf(r);
       default: return r.addedAt;
     }
   }
@@ -118,11 +113,9 @@ function rowHTML(r, i) {
     : `<span class="srv-ic">${(r.name || '?').charAt(0).toUpperCase()}</span>`;
   const nameCls = r.loading ? 'loading' : r.error ? 'error' : '';
   const nameTxt = r.loading ? 'Loading…' : (r.name || '—');
-  const p = profitOf(r);
-  const pCls = p == null ? 'profit-zero' : p > 0 ? 'profit-pos' : p < 0 ? 'profit-neg' : 'profit-zero';
-  const mg = marginOf(r);
-  const buyTitle = rateOf(r.buy) != null ? `${money(rateOf(r.buy))} / stay` : '';
-  const sellTitle = rateOf(r.sell) != null ? `${money(rateOf(r.sell))} / stay` : '';
+  const buyRate = rateOf(r.buy);
+  const sellRate = rateOf(r.sell);
+  const rateTxt = (v) => (v != null ? `${money(v)}/stay` : '');
   return `
     <tr data-id="${r.id}">
       <td class="td-idx">${i + 1}</td>
@@ -137,10 +130,14 @@ function rowHTML(r, i) {
       </td>
       <td class="td-num">${r.members != null ? fmt(r.members) : '—'}</td>
       <td><input class="cell-in" data-field="owner" value="${(r.owner || '').replace(/"/g, '&quot;')}" placeholder="—" /></td>
-      <td><input class="cell-in num" data-field="buy" value="${(r.buy ?? '').toString().replace(/"/g, '&quot;')}" placeholder="$1:10 / -" title="${buyTitle}" /></td>
-      <td><input class="cell-in num" data-field="sell" value="${(r.sell ?? '').toString().replace(/"/g, '&quot;')}" placeholder="$1:10 / -" title="${sellTitle}" /></td>
-      <td class="td-num ${pCls}">${p == null ? '—' : (p > 0 ? '+' : '') + money(p)}</td>
-      <td class="td-num ${pCls}">${mg == null ? '—' : (mg > 0 ? '+' : '') + mg.toFixed(0) + '%'}</td>
+      <td class="cell-deal">
+        <input class="cell-in num" data-field="buy" value="${(r.buy ?? '').toString().replace(/"/g, '&quot;')}" placeholder="$1:10 / -" />
+        <div class="cell-rate" data-rate="buy">${rateTxt(buyRate)}</div>
+      </td>
+      <td class="cell-deal">
+        <input class="cell-in num" data-field="sell" value="${(r.sell ?? '').toString().replace(/"/g, '&quot;')}" placeholder="$1:10 / -" />
+        <div class="cell-rate" data-rate="sell">${rateTxt(sellRate)}</div>
+      </td>
       <td>
         <button class="icon-btn refresh" title="Refresh from Discord" data-act="refresh">↻</button>
         <button class="icon-btn del" title="Delete" data-act="del">✕</button>
@@ -148,16 +145,14 @@ function rowHTML(r, i) {
     </tr>`;
 }
 
-const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
 function updateSummary(list) {
   $('#sumCount').textContent = fmt(list.length);
   $('#sumMembers').textContent = fmt(list.reduce((s, r) => s + num(r.members), 0));
-  $('#sumBuy').textContent = money(avg(list.map((r) => rateOf(r.buy)).filter((v) => v != null)));
-  $('#sumSell').textContent = money(avg(list.map((r) => rateOf(r.sell)).filter((v) => v != null)));
-  const spread = avg(list.map(profitOf).filter((v) => v != null));
-  const el = $('#sumProfit');
-  el.textContent = spread == null ? '—' : (spread > 0 ? '+' : '') + money(spread);
-  el.style.color = spread == null ? '' : spread > 0 ? 'var(--green)' : spread < 0 ? '#ff8ea1' : '';
+  const sellRates = list.map((r) => rateOf(r.sell)).filter((v) => v != null);
+  const buyRates = list.map((r) => rateOf(r.buy)).filter((v) => v != null);
+  $('#sumSellers').textContent = fmt(sellRates.length);
+  $('#sumBuyers').textContent = fmt(buyRates.length);
+  $('#sumCheap').textContent = sellRates.length ? money(Math.min(...sellRates)) : '—';
 }
 
 function refreshOwnerFilter() {
@@ -220,16 +215,12 @@ tbody.addEventListener('input', (e) => {
   const f = cell.dataset.field;
   row[f] = cell.value; // owner / buy / sell are all free-text (buy/sell use "$price:amount" or "-")
   save();
-  // live-update computed cells without full re-render (keeps focus)
-  const p = profitOf(row);
-  const mg = marginOf(row);
-  const cells = tr.children;
-  const pCls = p == null ? 'profit-zero' : p > 0 ? 'profit-pos' : p < 0 ? 'profit-neg' : 'profit-zero';
-  cells[6].className = 'td-num ' + pCls;
-  cells[6].textContent = p == null ? '—' : (p > 0 ? '+' : '') + money(p);
-  cells[7].className = 'td-num ' + pCls;
-  cells[7].textContent = mg == null ? '—' : (mg > 0 ? '+' : '') + mg.toFixed(0) + '%';
-  if (f === 'buy' || f === 'sell') cell.title = rateOf(cell.value) != null ? `${money(rateOf(cell.value))} / stay` : '';
+  // live-update the $/stay hint under the edited deal cell (keeps input focus)
+  if (f === 'buy' || f === 'sell') {
+    const rate = rateOf(cell.value);
+    const hint = cell.parentElement.querySelector('.cell-rate');
+    if (hint) hint.textContent = rate != null ? `${money(rate)}/stay` : '';
+  }
   updateSummary(rows);
 });
 tbody.addEventListener('change', (e) => {

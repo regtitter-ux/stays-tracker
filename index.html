@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stays Tracker — server buy/sell ledger</title>
-  <meta name="description" content="Track Discord server deals: auto-fetch name & members from the invite, log owner, buy and sell price of stays, filter and sort." />
+  <title>Stays DB — who buys & sells stays</title>
+  <meta name="description" content="A directory of Discord servers and their stays prices: auto-fetch name & members from the invite, record owner and buy/sell prices, filter and sort." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -15,8 +15,8 @@
     <div class="brand">
       <span class="brand-mark">S</span>
       <div>
-        <div class="brand-name">Stays Tracker</div>
-        <div class="brand-sub">Discord server buy / sell ledger</div>
+        <div class="brand-name">Stays DB</div>
+        <div class="brand-sub">Who buys &amp; sells stays — server directory</div>
       </div>
     </div>
     <div class="topbar-actions">
@@ -31,9 +31,9 @@
   <section class="summary" id="summary">
     <div class="sum-card"><span class="sum-num" id="sumCount">0</span><span class="sum-label">Servers</span></div>
     <div class="sum-card"><span class="sum-num" id="sumMembers">0</span><span class="sum-label">Members</span></div>
-    <div class="sum-card"><span class="sum-num" id="sumBuy">—</span><span class="sum-label">Avg buy $/stay</span></div>
-    <div class="sum-card"><span class="sum-num" id="sumSell">—</span><span class="sum-label">Avg sell $/stay</span></div>
-    <div class="sum-card profit"><span class="sum-num" id="sumProfit">—</span><span class="sum-label">Avg spread $/stay</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumSellers">0</span><span class="sum-label">Selling stays</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumBuyers">0</span><span class="sum-label">Buying stays</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumCheap">—</span><span class="sum-label">Cheapest sell $/stay</span></div>
   </section>
 
   <!-- Add form -->
@@ -56,10 +56,8 @@
       <option value="name">Name</option>
       <option value="members">Members</option>
       <option value="owner">Owner</option>
-      <option value="buy">Buy price</option>
-      <option value="sell">Sell price</option>
-      <option value="profit">Profit</option>
-      <option value="margin">Margin %</option>
+      <option value="buy">Buy price $/stay</option>
+      <option value="sell">Sell price $/stay</option>
     </select>
     <button class="btn ghost" id="sortDir" data-dir="desc" title="Toggle direction">↓ Desc</button>
     <span class="filler"></span>
@@ -75,10 +73,8 @@
           <th class="c-srv sortable" data-sort="name">Server</th>
           <th class="c-num sortable" data-sort="members">Members</th>
           <th class="c-owner sortable" data-sort="owner">Owner</th>
-          <th class="c-num sortable" data-sort="buy">Buy (stays)</th>
-          <th class="c-num sortable" data-sort="sell">Sell (stays)</th>
-          <th class="c-num sortable" data-sort="profit">Spread $/ea</th>
-          <th class="c-num sortable" data-sort="margin">Margin</th>
+          <th class="c-num sortable" data-sort="buy">Buys @ (stays)</th>
+          <th class="c-num sortable" data-sort="sell">Sells @ (stays)</th>
           <th class="c-act"></th>
         </tr>
       </thead>
