@@ -31,9 +31,9 @@
   <section class="summary" id="summary">
     <div class="sum-card"><span class="sum-num" id="sumCount">0</span><span class="sum-label">Servers</span></div>
     <div class="sum-card"><span class="sum-num" id="sumMembers">0</span><span class="sum-label">Members</span></div>
-    <div class="sum-card"><span class="sum-num" id="sumBuy">0</span><span class="sum-label">Total buy (stays)</span></div>
-    <div class="sum-card"><span class="sum-num" id="sumSell">0</span><span class="sum-label">Total sell (stays)</span></div>
-    <div class="sum-card profit"><span class="sum-num" id="sumProfit">0</span><span class="sum-label">Total profit</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumBuy">—</span><span class="sum-label">Avg buy $/stay</span></div>
+    <div class="sum-card"><span class="sum-num" id="sumSell">—</span><span class="sum-label">Avg sell $/stay</span></div>
+    <div class="sum-card profit"><span class="sum-num" id="sumProfit">—</span><span class="sum-label">Avg spread $/stay</span></div>
   </section>
 
   <!-- Add form -->
@@ -41,8 +41,8 @@
     <form id="addForm" class="add-form">
       <input class="in in-link" id="fLink" placeholder="discord.gg/invite  (name & members auto-filled)" autocomplete="off" required />
       <input class="in in-owner" id="fOwner" placeholder="Owner" autocomplete="off" />
-      <input class="in in-num" id="fBuy" type="number" step="any" min="0" placeholder="Buy (stays)" />
-      <input class="in in-num" id="fSell" type="number" step="any" min="0" placeholder="Sell (stays)" />
+      <input class="in in-num" id="fBuy" placeholder="Buy  $1:10 / -" autocomplete="off" />
+      <input class="in in-num" id="fSell" placeholder="Sell  $1:10 / -" autocomplete="off" />
       <button class="btn primary" type="submit">+ Add server</button>
     </form>
   </section>
@@ -77,7 +77,7 @@
           <th class="c-owner sortable" data-sort="owner">Owner</th>
           <th class="c-num sortable" data-sort="buy">Buy (stays)</th>
           <th class="c-num sortable" data-sort="sell">Sell (stays)</th>
-          <th class="c-num sortable" data-sort="profit">Profit</th>
+          <th class="c-num sortable" data-sort="profit">Spread $/ea</th>
           <th class="c-num sortable" data-sort="margin">Margin</th>
           <th class="c-act"></th>
         </tr>
